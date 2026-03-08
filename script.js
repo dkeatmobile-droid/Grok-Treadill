@@ -12,28 +12,14 @@ addEventListener('DOMContentLoaded', () => {
   const pauseBtn = document.getElementById('pause-workout')
   const stopBtn = document.getElementById('stop-workout')
   const dailyGrid = document.getElementById('daily-log')
-  const bpmFilter = document.getElementById('bpm-filter')
-  const plSelect = document.getElementById('playlist-select')
-  const connectSp = document.getElementById('connect-spotify')
-  const playBtn = document.getElementById('play-playlist')
-  const ppBtn = document.getElementById('play-pause')
-  const nextBtn = document.getElementById('next-track')
 
   let profile = JSON.parse(localStorage.getItem('p')) || {}
   let logs = JSON.parse(localStorage.getItem('logs')) || []
   let daily = JSON.parse(localStorage.getItem('daily')) || {}
   let tInterval, sTime = 0, phTime = 0, phase = 'warmup'
   let baseSp, maxSp, aCtx = null, isPaused = false
-  let spPlayer = null, spToken = null
-  let autoSp = localStorage.getItem('autoSp') !== 'false'
 
-  document.getElementById('autoplay-spotify').checked = autoSp
-  document.getElementById('autoplay-spotify').onchange = e => {
-    autoSp = e.target.checked
-    localStorage.setItem('autoSp', autoSp)
-  }
-
-  function beep(f=800, d=150, v=0.3, t='sine') {
+  function beep(f=800,d=150,v=0.3,t='sine') {
     if (!aCtx) aCtx = new (window.AudioContext || window.webkitAudioContext)
     const o = aCtx.createOscillator(), g = aCtx.createGain()
     o.connect(g); g.connect(aCtx.destination)
@@ -46,7 +32,7 @@ addEventListener('DOMContentLoaded', () => {
   if (Object.keys(profile).length) {
     ['sex','age','height','current-weight','target-weight','fitness-level']
       .forEach(id => document.getElementById(id).value = profile[id.replace(/-/g,'')||id])
-    calcTarget(); genRoutine(); showLogs(); showDaily(); suggestBpm()
+    calcTarget(); genRoutine(); showLogs(); showDaily()
   }
 
   pForm.onsubmit = e => {
@@ -60,7 +46,7 @@ addEventListener('DOMContentLoaded', () => {
       fitnessLevel: document.getElementById('fitness-level').value
     }
     localStorage.setItem('p', JSON.stringify(profile))
-    calcTarget(); genRoutine(); logW(profile.currentWeight); showDaily(); suggestBpm()
+    calcTarget(); genRoutine(); logW(profile.currentWeight); showDaily()
   }
 
   wForm.onsubmit = e => {
@@ -159,26 +145,16 @@ addEventListener('DOMContentLoaded', () => {
         updateH()
       }
     }, 1000)
-    if (autoSp && spPlayer && spToken) {
-      const u = plSelect.value
-      if (u) fetch('https://api.spotify.com/v1/me/player/play', {
-        method: 'PUT',
-        headers: {'Authorization': `Bearer ${spToken}`, 'Content-Type': 'application/json'},
-        body: JSON.stringify({context_uri: u})
-      }).catch(() => console.log('Spotify auto-play failed'))
-    }
   }
 
   pauseBtn.onclick = () => {
     if (isPaused) {
       tInterval = setInterval(() => { sTime++; phTime++; updateH() }, 1000)
       pauseBtn.textContent = 'Pause'
-      if (spPlayer) spPlayer.togglePlay()
       isPaused = false
     } else {
       clearInterval(tInterval)
       pauseBtn.textContent = 'Resume'
-      if (spPlayer) spPlayer.pause()
       isPaused = true
     }
   }
@@ -224,68 +200,6 @@ addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Spotify
-  window.onSpotifyWebPlaybackSDKReady = () => console.log('Spotify ready')
-
-  connectSp.onclick = async () => {
-    spToken = prompt("Spotify access token (with 'streaming' scope):")
-    if (!spToken) return
-    spPlayer = new Spotify.Player({
-      name: 'FitTrack',
-      getOAuthToken: cb => cb(spToken),
-      volume: 0.5
-    })
-    spPlayer.addListener('ready', () => {
-      document.getElementById('player-status').textContent = 'Connected'
-      playBtn.disabled = ppBtn.disabled = nextBtn.disabled = false
-    })
-    await spPlayer.connect()
-  }
-
-  ppBtn.onclick = () => spPlayer?.togglePlay()
-  nextBtn.onclick = () => spPlayer?.nextTrack()
-  playBtn.onclick = () => {
-    const u = plSelect.value
-    if (u && spPlayer && spToken) {
-      fetch('https://api.spotify.com/v1/me/player/play', {
-        method: 'PUT',
-        headers: {'Authorization': `Bearer ${spToken}`, 'Content-Type': 'application/json'},
-        body: JSON.stringify({context_uri: u})
-      }).catch(() => alert('Playback error'))
-    }
-  }
-
-  // BPM & playlists
-  const pl = [
-    {u:"spotify:playlist:0VSg3Ize1XJArEzV6fCVW5",l:"Running 120-160",b:"120-160"},
-    {u:"spotify:playlist:25cZd1BFqm8QOrkCRkLnOu",l:"Treadmill Gym",b:"140-160"},
-    {u:"spotify:playlist:4cIIkfHB5ukTjRcn0zNGRk",l:"Gym Pop",b:"140-160"},
-    {u:"spotify:playlist:6MIOcZ4tBKvEiQHzclhVAQ",l:"Running 2026",b:"140-160"},
-    {u:"spotify:playlist:46fOOGy5b5J4buNttN14VN",l:"Running Beats",b:"160+"},
-    {u:"spotify:playlist:6J9d0FIOVPONRIFDQ6lof2",l:"Cardio Hits",b:"160+"}
-  ]
-
-  function upPl(f='all') {
-    plSelect.innerHTML = '<option value="">Select...</option>'
-    const filtered = f === 'all' ? pl : pl.filter(p => p.b.includes(f) || p.b === f)
-    filtered.forEach(p => {
-      const o = document.createElement('option')
-      o.value = p.u
-      o.textContent = p.l
-      plSelect.appendChild(o)
-    })
-  }
-
-  function sug() {
-    if (!profile?.fitnessLevel) return
-    bpmFilter.value = profile.fitnessLevel === 'low' ? '120-140' : profile.fitnessLevel === 'medium' ? '140-160' : '160+'
-    upPl(bpmFilter.value)
-  }
-
-  bpmFilter.onchange = e => upPl(e.target.value)
-  upPl()
-  function suggest() { if (profile?.fitnessLevel) sug() }
-
-  // Call suggest after profile actions
-  suggest()
+  // Initial calls
+  if (Object.keys(profile).length) suggestBpm()
 })
