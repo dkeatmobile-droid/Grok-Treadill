@@ -39,7 +39,32 @@ canvas{max-width:100%!important;height:auto!important;margin:20px 0;border-radiu
   margin-bottom: clamp(12px, 3vw, 20px);
   flex-wrap: wrap;
 }
+.app-logo {
+  display: block;
+  width: clamp(48px, 12vw, 90px);      /* much smaller: min 48px → max 90px */
+  height: auto;
+  margin: 0 auto 12px auto;            /* centered + reduced space below */
+  border-radius: 12px;                 /* keep soft corners */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* subtle shadow */
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
 
+header:hover .app-logo {
+  transform: scale(1.06);              /* gentle hover zoom — optional, feels nice */
+}
+
+/* Extra small on narrow phones (e.g. iPhone SE or older) */
+@media (max-width: 400px) {
+  .app-logo {
+    width: clamp(40px, 10vw, 70px);
+    margin-bottom: 10px;
+  }
+  
+  header h1 {
+    font-size: clamp(1.6rem, 7vw, 2rem);
+  }
+}
 .spotify-logo {
   width:  clamp(24px, 6vw, 36px);    /* smaller: min 24px → max 36px */
   height: clamp(24px, 6vw, 36px);
