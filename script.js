@@ -1,3 +1,4 @@
+
 addEventListener('DOMContentLoaded', () => {
   const pForm = document.getElementById('profile-form')
   const wForm = document.getElementById('weight-log-form')
@@ -38,9 +39,9 @@ addEventListener('DOMContentLoaded', () => {
   pForm.onsubmit = e => {
     e.preventDefault()
     profile = {
-      sex: sex.value,
-      age: +age.value,
-      height: +height.value,
+      sex: document.getElementById('sex').value,
+      age: +document.getElementById('age').value,
+      height: +document.getElementById('height').value,
       currentWeight: +document.getElementById('current-weight').value,
       targetWeight: +document.getElementById('target-weight').value,
       fitnessLevel: document.getElementById('fitness-level').value
@@ -64,15 +65,32 @@ addEventListener('DOMContentLoaded', () => {
     showLogs()
   }
 
+  function deleteLog(index) {
+    logs.splice(index, 1)
+    localStorage.setItem('logs', JSON.stringify(logs))
+    showLogs()
+  }
+
   function showLogs() {
-    if (!logs.length) return
-    let h = '<table><tr><th>Date</th><th>kg</th><th>BMI</th><th>Δkg</th><th>ΔBMI</th></tr>'
+    if (!logs.length) {
+      wHist.innerHTML = '<p>No entries yet.</p>'
+      return
+    }
+    let h = '<div class="table-container"><table><tr><th>Date</th><th>kg</th><th>BMI</th><th>Δkg</th><th>ΔBMI</th><th></th></tr>'
     logs.forEach((l, i) => {
       const p = i ? logs[i-1] : null
-      h += `<tr><td>${l.d}</td><td>${l.w}</td><td>${l.bmi}</td><td>${p ? (l.w > p.w ? `<span class="up">↑ +${(l.w-p.w).toFixed(2)}</span>` : `<span class="down">↓ ${(l.w-p.w).toFixed(2)}</span>`) : ''}</td><td>${p ? (l.bmi > p.bmi ? `<span class="up">↑ +${(l.bmi-p.bmi).toFixed(2)}</span>` : `<span class="down">↓ ${(l.bmi-p.bmi).toFixed(2)}</span>`) : ''}</td></tr>`
+      h += `<tr>
+        <td>${l.d}</td>
+        <td>${l.w}</td>
+        <td>${l.bmi}</td>
+        <td>${p ? (l.w > p.w ? `<span class="up">↑ +${(l.w-p.w).toFixed(2)}</span>` : `<span class="down">↓ ${(l.w-p.w).toFixed(2)}</span>`) : ''}</td>
+        <td>${p ? (l.bmi > p.bmi ? `<span class="up">↑ +${(l.bmi-p.bmi).toFixed(2)}</span>` : `<span class="down">↓ ${(l.bmi-p.bmi).toFixed(2)}</span>`) : ''}</td>
+        <td><button class="delete-btn" onclick="deleteLog(${i})">🗑</button></td>
+      </tr>`
     })
-    h += '</table>'
+    h += '</table></div>'
     wHist.innerHTML = h
+
     new Chart(document.getElementById('bmi-chart').getContext('2d'), {
       type: 'line',
       data: {
@@ -201,5 +219,7 @@ addEventListener('DOMContentLoaded', () => {
   }
 
   // Initial calls
-  if (Object.keys(profile).length) suggestBpm()
+  if (Object.keys(profile).length) {
+    suggestBpm?.() // if you had BPM logic before
+  }
 })
