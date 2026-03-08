@@ -8,78 +8,118 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
-  <script src="https://js-cdn.music.apple.com/musickit/v3/musickit.js" data-web-components async></script>
 </head>
 <body>
-  <div class="container">
-    <h1>FitTrack</h1>
 
-    <section>
-      <h2>Profile</h2>
-      <form id="profile-form">
-        <label>Sex <select id="sex"><option>male</option><option>female</option><option>other</option></select></label>
-        <label>Age <input type="number" id="age" min="18" required></label>
-        <label>Height (cm) <input type="number" id="height" min="100" required></label>
-        <label>Weight (kg) <input type="number" id="current-weight" min="30" required></label>
-        <label>Target (kg) <input type="number" id="target-weight" min="30" required></label>
-        <label>Level <select id="fitness-level"><option>low</option><option>medium</option><option>high</option></select></label>
-        <button type="submit">Save</button>
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen active">
+    <div class="card">
+      <h1>FitTrack</h1>
+      <p>Sign in to continue</p>
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Username" required autocomplete="off">
+        <input type="password" id="password" placeholder="Password" required autocomplete="off">
+        <button type="submit">Sign In</button>
       </form>
-      <div id="monthly-target"></div>
-    </section>
+      <p class="small">Demo: any username + password works (stored locally)</p>
+    </div>
+  </div>
 
-    <section>
-      <h2>Weight Log</h2>
-      <form id="weight-log-form">
-        <label>Weight (kg) <input type="number" id="log-weight" min="30" required></label>
-        <button type="submit">Log</button>
-      </form>
-      <div id="weight-history"></div>
-      <canvas id="bmi-chart"></canvas>
-    </section>
+  <!-- Main Dashboard -->
+  <div id="main-screen" class="screen">
+    <header>
+      <h1>FitTrack</h1>
+      <button id="logout">Logout</button>
+    </header>
 
-    <section>
-      <h2>Routine</h2>
-      <div id="routine-output"></div>
-      <button id="start-workout">Start Workout</button>
-      <div id="workout-hud" style="display:none">
-        <h3>Session</h3>
-        <div id="timer-display">00:00</div>
-        <div id="speed-prompt">Ready...</div>
-        <div id="phase">Warm-up</div>
-        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
-          <button id="pause-workout">Pause</button>
-          <button id="stop-workout">Stop & Complete</button>
+    <div class="dashboard">
+      <div class="card stats">
+        <div>
+          <span class="label">Current Weight</span>
+          <span id="current-wt-display" class="value">-- kg</span>
+        </div>
+        <div>
+          <span class="label">BMI</span>
+          <span id="bmi-display" class="value">--</span>
+        </div>
+        <div>
+          <span class="label">Next Target</span>
+          <span id="next-target-display" class="value">-- kg</span>
         </div>
       </div>
-    </section>
 
-    <section>
-      <h2>Daily Completion</h2>
-      <div id="daily-log" class="daily-grid"></div>
-    </section>
+      <button id="to-settings">Settings</button>
 
-    <section id="spotify-section">
-      <h2>Spotify</h2>
-      <button id="connect-spotify">Connect</button>
-      <div id="player-status">Not connected</div>
-      <label>Auto-play <input type="checkbox" id="autoplay-spotify" checked></label>
-      <label>BPM <select id="bpm-filter"><option value="all">All</option><option value="120-140">120-140</option><option value="140-160">140-160</option><option value="160+">160+</option></select></label>
-      <label>Playlist <select id="playlist-select"></select></label>
-      <button id="play-playlist" disabled>Play</button>
-      <button id="play-pause" disabled>Play/Pause</button>
-      <button id="next-track" disabled>Next</button>
-    </section>
+      <!-- Weight Log -->
+      <section>
+        <h2>Log Weight</h2>
+        <form id="weight-log-form">
+          <input type="number" id="log-weight" placeholder="Weight (kg)" min="30" step="0.1" required>
+          <button type="submit">Log</button>
+        </form>
+        <div id="weight-history"></div>
+        <canvas id="bmi-chart" height="180"></canvas>
+      </section>
 
-    <section id="youtube-section">
-      <h2>YouTube Music</h2>
-      <input type="text" id="youtube-url" placeholder="YouTube / Music URL">
-      <button id="load-youtube">Load</button>
-      <label>Auto-play <input type="checkbox" id="autoplay-youtube" checked></label>
-      <div id="youtube-player" style="display:none"></div>
-      <button id="play-pause-youtube" disabled>Play/Pause</button>
-      <button id="next-youtube" disabled>Next</button>
-    </section>
+      <!-- Routine & Workout -->
+      <section>
+        <h2>Routine</h2>
+        <div id="routine-output"></div>
+        <button id="start-workout">Start Workout</button>
+        <div id="workout-hud" style="display:none">
+          <h3>Session</h3>
+          <div id="timer-display">00:00</div>
+          <div id="speed-prompt">Ready...</div>
+          <div id="phase">Warm-up</div>
+          <div class="btn-group">
+            <button id="pause-workout">Pause</button>
+            <button id="stop-workout">Finish</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Daily Check -->
+      <section>
+        <h2>Daily Progress</h2>
+        <div id="daily-log" class="daily-grid"></div>
+      </section>
+
+      <!-- Music -->
+      <section class="music-cards">
+        <div class="music-card spotify">
+          <div class="icon">Spotify</div>
+          <button id="connect-spotify">Connect</button>
+          <label><input type="checkbox" id="autoplay-spotify" checked> Auto-play</label>
+          <select id="playlist-select"><option>Select playlist...</option></select>
+          <button id="play-playlist" disabled>Play</button>
+        </div>
+
+        <div class="music-card youtube">
+          <div class="icon">YouTube Music</div>
+          <input type="text" id="youtube-url" placeholder="Playlist / Video URL">
+          <button id="load-youtube">Load</button>
+          <label><input type="checkbox" id="autoplay-youtube" checked> Auto-play</label>
+          <div id="youtube-player" style="display:none"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Settings Screen -->
+  <div id="settings-screen" class="screen">
+    <div class="card">
+      <h2>Settings</h2>
+      <form id="settings-form">
+        <label>Sex <select id="sex-s"><option>male</option><option>female</option><option>other</option></select></label>
+        <label>Age <input type="number" id="age-s" min="18"></label>
+        <label>Height (cm) <input type="number" id="height-s" min="100"></label>
+        <label>Current Weight (kg) <input type="number" id="current-weight-s" min="30" step="0.1"></label>
+        <label>Target Weight (kg) <input type="number" id="target-weight-s" min="30" step="0.1"></label>
+        <label>Fitness Level <select id="fitness-level-s"><option>low</option><option>medium</option><option>high</option></select></label>
+        <button type="submit">Save Changes</button>
+      </form>
+      <button id="back-to-main">Back to Dashboard</button>
+    </div>
   </div>
 
   <script src="script.js"></script>
