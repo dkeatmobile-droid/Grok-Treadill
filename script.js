@@ -3,7 +3,10 @@ addEventListener('DOMContentLoaded', () => {
   const wForm = document.getElementById('weight-log-form')
   const mTarget = document.getElementById('monthly-target')
   const wHist = document.getElementById('weight-history')
-  const rOut = document.getElementById('routine-output')
+  const startDateInput = document.getElementById('start-date')
+  const setStartBtn = document.getElementById('set-start-date')
+  const calendarContainer = document.getElementById('calendar-container')
+  const progressInfo = document.getElementById('progress-info')
   const startBtn = document.getElementById('start-workout')
   const hud = document.getElementById('workout-hud')
   const timerEl = document.getElementById('timer-display')
@@ -11,30 +14,20 @@ addEventListener('DOMContentLoaded', () => {
   const phaseEl = document.getElementById('phase')
   const pauseBtn = document.getElementById('pause-workout')
   const stopBtn = document.getElementById('stop-workout')
-  const dailyGrid = document.getElementById('daily-log')
 
   let profile = JSON.parse(localStorage.getItem('p')) || {}
   let logs = JSON.parse(localStorage.getItem('logs')) || []
-  let daily = JSON.parse(localStorage.getItem('daily')) || {}
+  let completions = JSON.parse(localStorage.getItem('completions')) || {}
+  let startDate = localStorage.getItem('startDate')
   let tInterval, sTime = 0, phTime = 0, phase = 'warmup'
   let baseMph, maxMph, aCtx = null, isPaused = false
 
-  function beep(f=800,d=150,v=0.3,t='sine') {
-    if (!aCtx) aCtx = new (window.AudioContext || window.webkitAudioContext)
-    const o = aCtx.createOscillator(), g = aCtx.createGain()
-    o.connect(g); g.connect(aCtx.destination)
-    o.type = t; o.frequency.value = f; g.gain.value = v
-    const n = aCtx.currentTime
-    o.start(n); o.stop(n + d/1000)
+  if (startDate) {
+    startDateInput.value = startDate
+    renderCalendar()
   }
 
-  // Load profile
-  if (Object.keys(profile).length) {
-    ['sex','age','height','current-weight','target-weight','fitness-level']
-      .forEach(id => document.getElementById(id).value = profile[id.replace(/-/g,'')||id])
-    calcTarget(); genRoutine(); showLogs(); showDaily()
-  }
-
+  // Profile
   pForm.onsubmit = e => {
     e.preventDefault()
     profile = {
@@ -46,9 +39,12 @@ addEventListener('DOMContentLoaded', () => {
       fitnessLevel: document.getElementById('fitness-level').value
     }
     localStorage.setItem('p', JSON.stringify(profile))
-    calcTarget(); genRoutine(); logW(profile.currentWeight); showDaily()
+    calcTarget()
+    logW(profile.currentWeight)
+    renderCalendar()
   }
 
+  // Weight log
   wForm.onsubmit = e => {
     e.preventDefault()
     logW(+document.getElementById('log-weight').value)
@@ -113,42 +109,110 @@ addEventListener('DOMContentLoaded', () => {
     mTarget.innerHTML = h
   }
 
-  function genRoutine() {
-    const {sex, age, height, fitnessLevel: l} = profile
-    const hm = height/100, k = sex==='male'?0.415:sex==='female'?0.413:0.414, sl = hm*k
-    const targetMiles = age<60 ? (sex==='male'?5.6:sex==='female'?5:5.3) : (sex==='male'?4.3:sex==='female'?3.7:4)
-    const sp = l==='low'?0.4:l==='medium'?0.6:0.8, inc = l==='low'?0.1:l==='medium'?0.05:0.025
-    baseMph = l==='low'?1.9:l==='medium'?2.5:3.1
-    maxMph = baseMph + (l==='low'?1.2:l==='medium'?1.9:2.5)
-    let h = `<p>Target distance: ${targetMiles.toFixed(1)} miles/day</p><p>Stride: ${(sl*100).toFixed(1)} cm</p><table><tr><th>Weeks</th><th>Miles</th><th>Time (min)</th></tr>`
-    let cp = sp
-    for (let i = 1; i <= 12; i += 2) {
-      const miles = (targetMiles*cp).toFixed(1)
-      const t = Math.round((miles / baseMph) * 60)
-      h += `<tr><td>${i}-${Math.min(i+1,12)}</td><td>${miles}</td><td>${t}</td></tr>`
-      cp = Math.min(1, cp + inc*2)
+  // Calendar functions
+  setStartBtn.onclick = () => {
+    if (!startDateInput.value) return alert('Select a start date')
+    startDate = startDateInput.value
+    localStorage.setItem('startDate', startDate)
+    completions = {} // reset completions when changing start date
+    localStorage.setItem('completions', JSON.stringify(completions))
+    renderCalendar()
+  }
+
+  function renderCalendar() {
+    if (!startDate) {
+      progressInfo.textContent = 'Set a start date to see your plan'
+      calendarContainer.innerHTML = ''
+      return
     }
-    h += '</table><p>Speeds: ${baseMph.toFixed(1)}–${maxMph.toFixed(1)} mph</p>'
-    rOut.innerHTML = h
-  }
 
-  function showDaily() {
-    let h = ''
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date()
-      d.setDate(d.getDate() - i)
-      const ds = d.toISOString().split('T')[0]
-      const ch = daily[ds] ? 'checked' : ''
-      h += `<div class="daily-checkbox"><input type="checkbox" id="d${ds}" ${ch} onchange="toggleD('${ds}')"><label for="d${ds}">${d.toLocaleDateString('en-US',{weekday:'short',day:'numeric'})}</label></div>`
+    const start = new Date(startDate)
+    const today = new Date()
+    today.setHours(0,0,0,0)
+
+    let html = ''
+    let current = new Date(start)
+    let week = 1
+
+    while (week <= 12) {
+      const monthName = current.toLocaleString('default', { month: 'long', year: 'numeric' })
+      let monthHtml = `<div class="calendar-month"><h3>${monthName}</h3><div class="calendar-grid">`
+
+      // Day names
+      ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d => {
+        monthHtml += `<div class="day-name">${d}</div>`
+      })
+
+      // Empty days before 1st
+      const firstDay = new Date(current.getFullYear(), current.getMonth(), 1)
+      let dayOfWeek = firstDay.getDay() || 7
+      for (let i = 1; i < dayOfWeek; i++) monthHtml += '<div></div>'
+
+      // Days
+      const daysInMonth = new Date(current.getFullYear(), current.getMonth()+1, 0).getDate()
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(current.getFullYear(), current.getMonth(), d)
+        const dateStr = date.toISOString().split('T')[0]
+        const daysSince = Math.floor((date - start) / (86400000))
+        const weekNum = Math.floor(daysSince / 7) + 1
+
+        let className = 'calendar-day'
+        let content = `<div class="date">${d}</div>`
+
+        if (date < start) {
+          className += ' past'
+        } else if (date > today) {
+          className += ' future'
+        } else {
+          const goal = getGoalMilesForWeek(weekNum)
+          content += `<div class="miles">${goal.toFixed(1)} mi</div>`
+
+          if (completions[dateStr]?.completed) {
+            className += ' completed'
+          } else if (date < today) {
+            className += ' missed'
+          } else {
+            content += `<input type="checkbox" ${completions[dateStr]?.completed ? 'checked' : ''} onchange="toggleCompletion('${dateStr}', this.checked)">`
+          }
+        }
+
+        monthHtml += `<div class="${className}">${content}</div>`
+      }
+
+      monthHtml += '</div></div>'
+      html += monthHtml
+
+      current.setMonth(current.getMonth() + 1)
+      week += 4 // roughly one month
     }
-    dailyGrid.innerHTML = h
+
+    calendarContainer.innerHTML = html
+    updateProgressInfo()
   }
 
-  window.toggleD = ds => {
-    daily[ds] = document.getElementById(`d${ds}`).checked
-    localStorage.setItem('daily', JSON.stringify(daily))
+  function getGoalMilesForWeek(week) {
+    if (!profile.fitnessLevel) return 0
+    const l = profile.fitnessLevel
+    const base = l==='low' ? 2.0 : l==='medium' ? 3.0 : 4.0
+    const max = l==='low' ? 3.2 : l==='medium' ? 4.9 : 6.5
+    const progress = Math.min(1, (week-1) / 11)
+    return base + progress * (max - base)
   }
 
+  window.toggleCompletion = (dateStr, completed) => {
+    completions[dateStr] = {completed}
+    localStorage.setItem('completions', JSON.stringify(completions))
+    renderCalendar()
+  }
+
+  function updateProgressInfo() {
+    if (!startDate) return
+    const daysSince = Math.floor((new Date() - new Date(startDate)) / (86400000))
+    const weeks = Math.floor(daysSince / 7) + 1
+    progressInfo.textContent = `Week ${Math.min(weeks,12)} of 12 • ${daysSince} days since start`
+  }
+
+  // Workout timer logic (unchanged except mph)
   startBtn.onclick = () => {
     if (aCtx) aCtx.resume()
     hud.style.display = 'block'
@@ -184,9 +248,9 @@ addEventListener('DOMContentLoaded', () => {
     hud.style.display = 'none'
     startBtn.style.display = 'block'
     const t = new Date().toISOString().split('T')[0]
-    daily[t] = true
-    localStorage.setItem('daily', JSON.stringify(daily))
-    showDaily()
+    completions[t] = {completed: true}
+    localStorage.setItem('completions', JSON.stringify(completions))
+    renderCalendar()
     beep(440,300,0.4,'sine')
     alert('Done!')
   }
@@ -220,8 +284,6 @@ addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial calls
-  if (Object.keys(profile).length) {
-    // suggestBpm?.() // removed as Spotify is gone
-  }
+  // Initial render
+  renderCalendar()
 })
