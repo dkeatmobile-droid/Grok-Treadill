@@ -1,4 +1,3 @@
-
 addEventListener('DOMContentLoaded', () => {
   const pForm = document.getElementById('profile-form')
   const wForm = document.getElementById('weight-log-form')
@@ -18,7 +17,7 @@ addEventListener('DOMContentLoaded', () => {
   let logs = JSON.parse(localStorage.getItem('logs')) || []
   let daily = JSON.parse(localStorage.getItem('daily')) || {}
   let tInterval, sTime = 0, phTime = 0, phase = 'warmup'
-  let baseSp, maxSp, aCtx = null, isPaused = false
+  let baseMph, maxMph, aCtx = null, isPaused = false
 
   function beep(f=800,d=150,v=0.3,t='sine') {
     if (!aCtx) aCtx = new (window.AudioContext || window.webkitAudioContext)
@@ -66,9 +65,11 @@ addEventListener('DOMContentLoaded', () => {
   }
 
   function deleteLog(index) {
-    logs.splice(index, 1)
-    localStorage.setItem('logs', JSON.stringify(logs))
-    showLogs()
+    if (confirm('Delete this entry?')) {
+      logs.splice(index, 1)
+      localStorage.setItem('logs', JSON.stringify(logs))
+      showLogs()
+    }
   }
 
   function showLogs() {
@@ -85,7 +86,7 @@ addEventListener('DOMContentLoaded', () => {
         <td>${l.bmi}</td>
         <td>${p ? (l.w > p.w ? `<span class="up">↑ +${(l.w-p.w).toFixed(2)}</span>` : `<span class="down">↓ ${(l.w-p.w).toFixed(2)}</span>`) : ''}</td>
         <td>${p ? (l.bmi > p.bmi ? `<span class="up">↑ +${(l.bmi-p.bmi).toFixed(2)}</span>` : `<span class="down">↓ ${(l.bmi-p.bmi).toFixed(2)}</span>`) : ''}</td>
-        <td><button class="delete-btn" onclick="deleteLog(${i})">🗑</button></td>
+        <td><button class="delete-btn" onclick="deleteLog(${i})" title="Delete entry">🗑</button></td>
       </tr>`
     })
     h += '</table></div>'
@@ -97,7 +98,7 @@ addEventListener('DOMContentLoaded', () => {
         labels: logs.map(l => l.d),
         datasets: [{label:'BMI', data: logs.map(l => l.bmi), borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,0.2)'}]
       },
-      options: {scales: {y: {beginAtZero: false}}}
+      options: {scales: {y: {beginAtZero: false}}, responsive: true, maintainAspectRatio: false}
     })
   }
 
@@ -115,18 +116,19 @@ addEventListener('DOMContentLoaded', () => {
   function genRoutine() {
     const {sex, age, height, fitnessLevel: l} = profile
     const hm = height/100, k = sex==='male'?0.415:sex==='female'?0.413:0.414, sl = hm*k
-    const ts = age<60 ? (sex==='male'?9000:sex==='female'?8000:8500) : (sex==='male'?7000:sex==='female'?6000:6500)
+    const targetMiles = age<60 ? (sex==='male'?5.6:sex==='female'?5:5.3) : (sex==='male'?4.3:sex==='female'?3.7:4)
     const sp = l==='low'?0.4:l==='medium'?0.6:0.8, inc = l==='low'?0.1:l==='medium'?0.05:0.025
-    baseSp = l==='low'?3:l==='medium'?4:5
-    maxSp = baseSp + (l==='low'?2:l==='medium'?3:4)
-    let h = `<p>Target steps: ${ts}</p><p>Stride: ${(sl*100).toFixed(1)} cm</p><table><tr><th>Weeks</th><th>Steps</th><th>Min</th></tr>`
+    baseMph = l==='low'?1.9:l==='medium'?2.5:3.1
+    maxMph = baseMph + (l==='low'?1.2:l==='medium'?1.9:2.5)
+    let h = `<p>Target distance: ${targetMiles.toFixed(1)} miles/day</p><p>Stride: ${(sl*100).toFixed(1)} cm</p><table><tr><th>Weeks</th><th>Miles</th><th>Time (min)</th></tr>`
     let cp = sp
     for (let i = 1; i <= 12; i += 2) {
-      const s = Math.round(ts*cp), d = (s*sl)/1000, t = Math.round(d/baseSp*60)
-      h += `<tr><td>${i}-${Math.min(i+1,12)}</td><td>${s}</td><td>${t}</td></tr>`
+      const miles = (targetMiles*cp).toFixed(1)
+      const t = Math.round((miles / baseMph) * 60)
+      h += `<tr><td>${i}-${Math.min(i+1,12)}</td><td>${miles}</td><td>${t}</td></tr>`
       cp = Math.min(1, cp + inc*2)
     }
-    h += '</table>'
+    h += '</table><p>Speeds: ${baseMph.toFixed(1)}–${maxMph.toFixed(1)} mph</p>'
     rOut.innerHTML = h
   }
 
@@ -196,21 +198,21 @@ addEventListener('DOMContentLoaded', () => {
     let spd, cue = false, f = 800
     if (phase === 'warmup') {
       phaseEl.textContent = 'Warm-up'
-      spd = baseSp + (phTime/300)*(maxSp-baseSp)
+      spd = baseMph + (phTime/300)*(maxMph-baseMph)
       if (phTime >= 300) { phase = 'main'; phTime = 0; cue = true; f = 1000 }
       else if (Math.floor(phTime/60) !== Math.floor((phTime-1)/60)) { cue = true; f = 700 }
     } else if (phase === 'main') {
       phaseEl.textContent = 'Main'
       const iv = Math.floor(phTime/60) % 2
-      spd = iv === 0 ? maxSp : baseSp + 1
+      spd = iv === 0 ? maxMph : baseMph + 0.6
       if (Math.floor(phTime/60) !== Math.floor((phTime-1)/60)) { cue = true; f = iv === 0 ? 950 : 650 }
       if (sTime >= 1200) { phase = 'cooldown'; phTime = 0; cue = true; f = 400 }
     } else if (phase === 'cooldown') {
       phaseEl.textContent = 'Cool-down'
-      spd = maxSp - (phTime/300)*(maxSp-baseSp)
+      spd = maxMph - (phTime/300)*(maxMph-baseMph)
       if (phTime >= 300) return stopBtn.click()
     }
-    speedEl.textContent = `Speed: ${spd.toFixed(1)} km/h`
+    speedEl.textContent = `Speed: ${spd.toFixed(1)} mph`
     if (cue) {
       beep(f,180,0.35,'sine')
       speedEl.classList.add('flash')
@@ -220,6 +222,6 @@ addEventListener('DOMContentLoaded', () => {
 
   // Initial calls
   if (Object.keys(profile).length) {
-    suggestBpm?.() // if you had BPM logic before
+    // suggestBpm?.() // removed as Spotify is gone
   }
 })
