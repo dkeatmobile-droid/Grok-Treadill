@@ -1,75 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FitTrack Treadmill</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Spotify Web Playback SDK -->
-    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FitTrack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <script src="https://js-cdn.music.apple.com/musickit/v3/musickit.js" data-web-components async></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>FitTrack Treadmill</h1>
-            <p>Your modern funky fitness companion! Track weight, crush BMI goals, and treadmill like a pro. 🚀</p>
-        </header>
+  <div class="container">
+    <h1>FitTrack</h1>
 
-        <section id="profile-section">
-            <h2>Setup Your Profile</h2>
-            <form id="profile-form">
-                <label>Sex: <select id="sex"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></label>
-                <label>Age: <input type="number" id="age" min="18" required></label>
-                <label>Height (cm): <input type="number" id="height" min="100" required></label>
-                <label>Current Weight (kg): <input type="number" id="current-weight" min="30" required></label>
-                <label>Target Weight (kg): <input type="number" id="target-weight" min="30" required></label>
-                <label>Fitness Level: <select id="fitness-level"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
-                <button type="submit">Save Profile</button>
-            </form>
-            <div id="monthly-target"></div>
-        </section>
+    <section>
+      <h2>Profile</h2>
+      <form id="profile-form">
+        <label>Sex <select id="sex"><option>male</option><option>female</option><option>other</option></select></label>
+        <label>Age <input type="number" id="age" min="18" required></label>
+        <label>Height (cm) <input type="number" id="height" min="100" required></label>
+        <label>Weight (kg) <input type="number" id="current-weight" min="30" required></label>
+        <label>Target (kg) <input type="number" id="target-weight" min="30" required></label>
+        <label>Level <select id="fitness-level"><option>low</option><option>medium</option><option>high</option></select></label>
+        <button type="submit">Save</button>
+      </form>
+      <div id="monthly-target"></div>
+    </section>
 
-        <section id="weight-log-section">
-            <h2>Weekly Weight Log</h2>
-            <form id="weight-log-form">
-                <label>Weight (kg): <input type="number" id="log-weight" min="30" required></label>
-                <button type="submit">Log Weight</button>
-            </form>
-            <div id="weight-history"></div>
-            <canvas id="bmi-chart" width="400" height="200"></canvas>
-        </section>
+    <section>
+      <h2>Weight Log</h2>
+      <form id="weight-log-form">
+        <label>Weight (kg) <input type="number" id="log-weight" min="30" required></label>
+        <button type="submit">Log</button>
+      </form>
+      <div id="weight-history"></div>
+      <canvas id="bmi-chart"></canvas>
+    </section>
 
-        <section id="routine-section">
-            <h2>Your Treadmill Routine</h2>
-            <div id="routine-output"></div>
-            <button id="start-workout">Start Today's Workout</button>
-            <div id="workout-hud" style="display: none;">
-                <h3>Live Session</h3>
-                <div id="timer-display">00:00</div>
-                <div id="speed-prompt">Get ready...</div>
-                <div id="phase">Warm-up</div>
-                <button id="stop-workout">Stop & Mark Complete</button>
-            </div>
-        </section>
+    <section>
+      <h2>Routine</h2>
+      <div id="routine-output"></div>
+      <button id="start-workout">Start Workout</button>
+      <div id="workout-hud" style="display:none">
+        <h3>Session</h3>
+        <div id="timer-display">00:00</div>
+        <div id="speed-prompt">Ready...</div>
+        <div id="phase">Warm-up</div>
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
+          <button id="pause-workout">Pause</button>
+          <button id="stop-workout">Stop & Complete</button>
+        </div>
+      </div>
+    </section>
 
-        <section id="daily-log-section">
-            <h2>Daily Workout Completion</h2>
-            <div id="daily-log"></div>
-        </section>
+    <section>
+      <h2>Daily Completion</h2>
+      <div id="daily-log" class="daily-grid"></div>
+    </section>
 
-        <section id="spotify-section">
-            <h2>Spotify Workout Music</h2>
-            <button id="connect-spotify">Connect Spotify</button>
-            <div id="player-status">Not connected</div>
-            <input type="text" id="playlist-uri" placeholder="spotify:playlist:YOUR_PLAYLIST_ID" />
-            <button id="play-playlist" disabled>Play This Playlist</button>
-            <button id="play-pause" disabled>Play/Pause</button>
-            <button id="next-track" disabled>Next Track</button>
-        </section>
-    </div>
+    <section id="spotify-section">
+      <h2>Spotify</h2>
+      <button id="connect-spotify">Connect</button>
+      <div id="player-status">Not connected</div>
+      <label>Auto-play <input type="checkbox" id="autoplay-spotify" checked></label>
+      <label>BPM <select id="bpm-filter"><option value="all">All</option><option value="120-140">120-140</option><option value="140-160">140-160</option><option value="160+">160+</option></select></label>
+      <label>Playlist <select id="playlist-select"></select></label>
+      <button id="play-playlist" disabled>Play</button>
+      <button id="play-pause" disabled>Play/Pause</button>
+      <button id="next-track" disabled>Next</button>
+    </section>
 
-    <script src="script.js"></script>
+    <section id="youtube-section">
+      <h2>YouTube Music</h2>
+      <input type="text" id="youtube-url" placeholder="YouTube / Music URL">
+      <button id="load-youtube">Load</button>
+      <label>Auto-play <input type="checkbox" id="autoplay-youtube" checked></label>
+      <div id="youtube-player" style="display:none"></div>
+      <button id="play-pause-youtube" disabled>Play/Pause</button>
+      <button id="next-youtube" disabled>Next</button>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
