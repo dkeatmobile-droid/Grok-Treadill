@@ -1,171 +1,238 @@
-/* Reset and mobile-first base */
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    color: white;
-    min-height: 100svh;          /* Use small viewport height for iOS Safari */
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  min-height: 100svh;
+  padding: 10px;
+  display: grid;
+  place-items: start center;
 }
 
 .container {
-    width: 100%;
-    max-width: 800px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 15px;               /* Reduced for mobile */
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 800px;
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  backdrop-filter: blur(10px);
 }
 
-/* Typography tweaks for mobile */
 h1 {
-    font-size: 2.4em;
-    text-align: center;
-    margin-bottom: 8px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+  font-size: clamp(2rem, 6vw, 2.4rem);
+  text-align: center;
+  margin-bottom: 8px;
+  text-shadow: 1px 1px 3px #0004;
 }
 
 h2 {
-    font-size: 1.8em;
-    margin: 30px 0 15px;
-    text-align: center;
+  font-size: clamp(1.5rem, 5vw, 1.8rem);
+  margin: 28px 0 14px;
+  text-align: center;
 }
 
 p {
-    font-size: 1.05em;
-    line-height: 1.4;
-    text-align: center;
+  font-size: 1.05em;
+  line-height: 1.4;
+  text-align: center;
 }
 
-/* Forms & Inputs */
 form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 label {
-    font-size: 1.1em;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 1.1em;
 }
 
 input, select {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1em;
-    background: rgba(255,255,255,0.2);
-    color: white;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1em;
+  background: rgba(255,255,255,0.2);
+  color: white;
 }
 
-input::placeholder {
-    color: rgba(255,255,255,0.7);
-}
+input::placeholder { color: rgba(255,255,255,0.7); }
 
 button {
-    padding: 14px;
-    background: #ff6b6b;
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-weight: 600;
-    font-size: 1.1em;
-    cursor: pointer;
-    transition: background 0.3s;
+  padding: 14px;
+  background: #ff6b6b;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background .3s;
 }
 
-button:hover {
-    background: #ff4757;
-}
+button:hover { background: #ff4757; }
 
-/* Tables (weight history & routine) */
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
-    font-size: 0.9em;
-    overflow-x: auto;
-    display: block;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 0.9em;
+  overflow-x: auto;
+  display: block;
 }
 
 th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid rgba(255,255,255,0.25);
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
 }
 
-.up { color: #ff4757; }
+.up  { color: #ff4757; }
 .down { color: #2ed573; }
 
-/* Chart */
-#bmi-chart {
-    max-width: 100% !important;
-    height: auto !important;
-    margin: 20px 0;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 10px;
+#bmi-chart, canvas {
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 20px 0;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
 }
 
-canvas {
-    max-width: 100% !important;
-}
-
-/* Monthly target list - make it compact */
 #monthly-target ul {
-    list-style: none;
-    padding: 0;
-    font-size: 0.95em;
+  list-style: none;
+  padding: 0;
+  font-size: 0.95em;
 }
 
 #monthly-target li {
-    margin: 6px 0;
-    padding: 8px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
+  margin: 6px 0;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
 }
 
-/* iPhone 14 / small viewport tweaks */
-@media (max-width: 400px) {
-    .container {
-        padding: 12px;
-        border-radius: 14px;
-    }
-    h1 {
-        font-size: 2.1em;
-    }
-    h2 {
-        font-size: 1.6em;
-    }
-    label, input, select, button {
-        font-size: 0.95em;
-    }
-    p {
-        font-size: 0.95em;
-    }
-    table {
-        font-size: 0.85em;
-    }
+/* Workout HUD */
+#workout-hud {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 16px;
+  text-align: center;
+  animation: pulse 2s infinite;
 }
 
-/* Animation */
+#timer-display {
+  font-size: 3em;
+  font-weight: 800;
+  margin: 10px 0;
+}
+
+#speed-prompt {
+  font-size: 1.8em;
+  color: #ff6b6b;
+}
+
+#phase {
+  font-size: 1.2em;
+  color: #2ed573;
+}
+
+#stop-workout {
+  background: #ff4757;
+  margin-top: 15px;
+}
+
+.speed-change {
+  animation: flash 0.4s;
+}
+
+@keyframes flash {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(255,107,107,0.4); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,107,107,0.7); }
+  70% { box-shadow: 0 0 0 20px rgba(255,107,107,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,107,107,0); }
+}
+
+/* Daily Log */
+#daily-log {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.daily-checkbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.daily-checkbox input:checked + label {
+  color: #2ed573;
+  transform: scale(1.1);
+}
+
+.daily-checkbox label {
+  font-size: 0.9em;
+  margin-top: 5px;
+}
+
+/* Spotify Section */
+#spotify-section {
+  margin-top: 30px;
+  padding: 15px;
+  background: rgba(30, 215, 96, 0.15);
+  border-radius: 16px;
+  text-align: center;
+}
+
+#connect-spotify {
+  background: #1DB954;
+  margin: 10px 0;
+}
+
+#connect-spotify:hover { background: #1ed760; }
+
+#spotify-section input {
+  margin: 12px 0;
+  font-size: 0.95em;
+}
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Small screens */
+@media (max-width: 420px) {
+  .container { padding: 12px; border-radius: 14px; }
+  h1 { font-size: 2.1rem; }
+  h2 { font-size: 1.6rem; }
+  label, input, select, button { font-size: 0.95em; }
+  p, table { font-size: 0.9em; }
+}
+
+/* Fade-in */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-section {
-    animation: fadeIn 0.6s ease-out;
-}
+section { animation: fadeIn 0.6s ease-out; }
