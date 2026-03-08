@@ -6,38 +6,46 @@
   <title>FitTrack</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
   <div class="container">
-    <header style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">
-      <img src="https://cdn.freebiesupply.com/logos/thumbs/2x/spotify-2-logo.png" alt="Spotify" style="width:40px;height:40px;">
-      <h1 style="margin:0;">FitTrack</h1>
+    <header>
+      <h1>FitTrack</h1>
     </header>
 
     <section>
-      <h2>Profile</h2>
-      <form id="profile-form">
-        <label>Sex <select id="sex"><option>male</option><option>female</option><option>other</option></select></label>
-        <label>Age <input type="number" id="age" min="18" required></label>
-        <label>Height (cm) <input type="number" id="height" min="100" required></label>
-        <label>Weight (kg) <input type="number" id="current-weight" min="30" required></label>
-        <label>Target (kg) <input type="number" id="target-weight" min="30" required></label>
-        <label>Level <select id="fitness-level"><option>low</option><option>medium</option><option>high</option></select></label>
-        <button type="submit">Save</button>
-      </form>
-      <div id="monthly-target"></div>
+      <h2 class="collapsible" onclick="this.classList.toggle('active'); this.nextElementSibling.classList.toggle('show')">
+        Profile <span class="toggle-icon">▼</span>
+      </h2>
+      <div class="content">
+        <form id="profile-form">
+          <label>Sex <select id="sex"><option>male</option><option>female</option><option>other</option></select></label>
+          <label>Age <input type="number" id="age" min="18" required></label>
+          <label>Height (cm) <input type="number" id="height" min="100" required></label>
+          <label>Weight (kg) <input type="number" id="current-weight" min="30" required></label>
+          <label>Target (kg) <input type="number" id="target-weight" min="30" required></label>
+          <label>Level <select id="fitness-level"><option>low</option><option>medium</option><option>high</option></select></label>
+          <button type="submit">Save Profile</button>
+        </form>
+        <div id="monthly-target"></div>
+      </div>
     </section>
 
     <section>
-      <h2>Weight Log</h2>
-      <form id="weight-log-form">
-        <label>Weight (kg) <input type="number" id="log-weight" min="30" required></label>
-        <button type="submit">Log</button>
-      </form>
-      <div id="weight-history"></div>
-      <canvas id="bmi-chart"></canvas>
+      <h2 class="collapsible" onclick="this.classList.toggle('active'); this.nextElementSibling.classList.toggle('show')">
+        Weight Log <span class="toggle-icon">▼</span>
+      </h2>
+      <div class="content">
+        <form id="weight-log-form">
+          <label>Weight (kg) <input type="number" id="log-weight" min="30" required></label>
+          <button type="submit">Log</button>
+        </form>
+        <div id="weight-history"></div>
+        <canvas id="bmi-chart"></canvas>
+      </div>
     </section>
 
     <section>
@@ -62,15 +70,32 @@
     </section>
 
     <section id="spotify-section">
-      <h2>Spotify</h2>
-      <button id="connect-spotify">Connect Spotify</button>
+      <div class="spotify-header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify" class="spotify-logo">
+        <h2>Spotify</h2>
+      </div>
+
+      <button id="connect-spotify">
+        <i class="fab fa-spotify"></i> Connect Spotify
+      </button>
       <div id="player-status">Not connected</div>
+
       <label>Auto-play <input type="checkbox" id="autoplay-spotify" checked></label>
-      <label>BPM <select id="bpm-filter"><option value="all">All</option><option value="120-140">120-140</option><option value="140-160">140-160</option><option value="160+">160+</option></select></label>
+
+      <label>BPM <select id="bpm-filter">
+        <option value="all">All</option>
+        <option value="120-140">120-140</option>
+        <option value="140-160">140-160</option>
+        <option value="160+">160+</option>
+      </select></label>
+
       <label>Playlist <select id="playlist-select"></select></label>
-      <button id="play-playlist" disabled>Play</button>
-      <button id="play-pause" disabled>Play/Pause</button>
-      <button id="next-track" disabled>Next</button>
+
+      <div class="spotify-controls">
+        <button id="play-playlist" disabled><i class="fas fa-play-circle"></i> Play</button>
+        <button id="play-pause" disabled><i class="fas fa-play"></i>/<i class="fas fa-pause"></i></button>
+        <button id="next-track" disabled><i class="fas fa-forward"></i> Next</button>
+      </div>
     </section>
   </div>
 
