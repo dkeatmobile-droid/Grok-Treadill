@@ -1,61 +1,87 @@
+/* Reset and mobile-first base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(135deg, #6a11cb, #2575fc);
     color: white;
-    margin: 0;
-    padding: 20px;
+    min-height: 100svh;          /* Use small viewport height for iOS Safari */
+    padding: 10px;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
 }
 
 .container {
+    width: 100%;
     max-width: 800px;
     background: rgba(255, 255, 255, 0.1);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 15px;               /* Reduced for mobile */
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(10px);
 }
 
+/* Typography tweaks for mobile */
 h1 {
-    font-size: 3em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    margin-bottom: 10px;
+    font-size: 2.4em;
+    text-align: center;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
 }
 
 h2 {
-    font-size: 2em;
-    margin-top: 40px;
+    font-size: 1.8em;
+    margin: 30px 0 15px;
+    text-align: center;
 }
 
 p {
-    font-size: 1.2em;
+    font-size: 1.05em;
+    line-height: 1.4;
+    text-align: center;
 }
 
+/* Forms & Inputs */
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 label {
     font-size: 1.1em;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 input, select {
-    padding: 10px;
+    width: 100%;
+    padding: 12px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 1em;
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+input::placeholder {
+    color: rgba(255,255,255,0.7);
 }
 
 button {
-    padding: 12px;
+    padding: 14px;
     background: #ff6b6b;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     color: white;
     font-weight: 600;
+    font-size: 1.1em;
     cursor: pointer;
     transition: background 0.3s;
 }
@@ -64,34 +90,82 @@ button:hover {
     background: #ff4757;
 }
 
+/* Tables (weight history & routine) */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin: 15px 0;
+    font-size: 0.9em;
+    overflow-x: auto;
+    display: block;
 }
 
 th, td {
-    padding: 10px;
+    padding: 8px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.25);
 }
 
 .up { color: #ff4757; }
 .down { color: #2ed573; }
 
+/* Chart */
 #bmi-chart {
-    margin-top: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 20px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
     padding: 10px;
 }
 
-/* Funky animations */
+canvas {
+    max-width: 100% !important;
+}
+
+/* Monthly target list - make it compact */
+#monthly-target ul {
+    list-style: none;
+    padding: 0;
+    font-size: 0.95em;
+}
+
+#monthly-target li {
+    margin: 6px 0;
+    padding: 8px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+}
+
+/* iPhone 14 / small viewport tweaks */
+@media (max-width: 400px) {
+    .container {
+        padding: 12px;
+        border-radius: 14px;
+    }
+    h1 {
+        font-size: 2.1em;
+    }
+    h2 {
+        font-size: 1.6em;
+    }
+    label, input, select, button {
+        font-size: 0.95em;
+    }
+    p {
+        font-size: 0.95em;
+    }
+    table {
+        font-size: 0.85em;
+    }
+}
+
+/* Animation */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 section {
-    animation: fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.6s ease-out;
 }
