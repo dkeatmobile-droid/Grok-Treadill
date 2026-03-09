@@ -1,204 +1,153 @@
-addEventListener('DOMContentLoaded', () => {
-  const pForm = document.getElementById('profile-form')
-  const wForm = document.getElementById('weight-log-form')
-  const mTarget = document.getElementById('monthly-target')
-  const wHist = document.getElementById('weight-history')
-  const rOut = document.getElementById('routine-output')
-  const startBtn = document.getElementById('start-workout')
-  const hud = document.getElementById('workout-hud')
-  const timerEl = document.getElementById('timer-display')
-  const speedEl = document.getElementById('speed-prompt')
-  const phaseEl = document.getElementById('phase')
-  const pauseBtn = document.getElementById('pause-workout')
-  const stopBtn = document.getElementById('stop-workout')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+  <title>FitTrack</title>
 
-  let profile = JSON.parse(localStorage.getItem('p')) || {}
-  let logs = JSON.parse(localStorage.getItem('logs')) || []
-  let tInterval, sTime = 0, phTime = 0, phase = 'warmup'
-  let baseMph, maxMph, aCtx = null, isPaused = false
+  <!-- Styles -->
+  styles.css
+  <link
+    href="https://fonts.googleapis.com/css:wght@400;600;700&display=swap
 
-  function beep(f=800,d=150,v=0.3,t='sine') {
-    if (!aCtx) aCtx = new (window.AudioContext || window.webkitAudioContext)
-    const o = aCtx.createOscillator(), g = aCtx.createGain()
-    o.connect(g); g.connect(aCtx.destination)
-    o.type = t; o.frequency.value = f; g.gain.value = v
-    const n = aCtx.currentTime
-    o.start(n); o.stop(n + d/1000)
-  }
+  <!-- Chart.js -->
+  https://cdn.jsdelivr.net/npm/chart.js</script>
 
-  // Load profile
-  if (Object.keys(profile).length) {
-    ['sex','age','height','current-weight','target-weight','fitness-level']
-      .forEach(id => document.getElementById(id).value = profile[id.replace(/-/g,'')||id])
-    calcTarget(); genRoutine(); showLogs()
-  }
-
-  pForm.onsubmit = e => {
-    e.preventDefault()
-    profile = {
-      sex: document.getElementById('sex').value,
-      age: +document.getElementById('age').value,
-      height: +document.getElementById('height').value,
-      currentWeight: +document.getElementById('current-weight').value,
-      targetWeight: +document.getElementById('target-weight').value,
-      fitnessLevel: document.getElementById('fitness-level').value
+  <!-- Allow deleteLog() to be called -->
+  <script>
+    window.deleteLog = function(index) {
+      if (window._deleteLog) window._deleteLog(index);
     }
-    localStorage.setItem('p', JSON.stringify(profile))
-    calcTarget(); genRoutine(); logW(profile.currentWeight)
-  }
+  </script>
+</head>
 
-  wForm.onsubmit = e => {
-    e.preventDefault()
-    logW(+document.getElementById('log-weight').value)
-    document.getElementById('log-weight').value = ''
-  }
+<body>
+  <div class="container">
 
-  function logW(w) {
-    const d = new Date().toLocaleDateString()
-    const h = profile.height / 100
-    const bmi = (w / (h * h)).toFixed(2)
-    logs.push({d, w, bmi})
-    localStorage.setItem('logs', JSON.stringify(logs))
-    showLogs()
-  }
+    <!-- HEADER -->
+    <header>
+      <!-- Make sure the file is actually uploaded as logo.png -->
+      logo.png
+      <h1>FitTrack</h1>
+    </header>
 
-  function deleteLog(index) {
-    if (confirm('Delete this entry?')) {
-      logs.splice(index, 1)
-      localStorage.setItem('logs', JSON.stringify(logs))
-      showLogs()
-    }
-  }
+    <!-- PROFILE SECTION -->
+    <section>
+      <h2 class="collapsible">
+        Profile <span class="toggle-icon">▼</span>
+      </h2>
 
-  function showLogs() {
-    if (!logs.length) {
-      wHist.innerHTML = '<p>No entries yet.</p>'
-      return
-    }
-    let h = '<div class="table-container"><table><tr><th>Date</th><th>kg</th><th>BMI</th><th>Δkg</th><th>ΔBMI</th><th></th></tr>'
-    logs.forEach((l, i) => {
-      const p = i ? logs[i-1] : null
-      h += `<tr>
-        <td>${l.d}</td>
-        <td>${l.w}</td>
-        <td>${l.bmi}</td>
-        <td>${p ? (l.w > p.w ? `<span class="up">↑ +${(l.w-p.w).toFixed(2)}</span>` : `<span class="down">↓ ${(l.w-p.w).toFixed(2)}</span>`) : ''}</td>
-        <td>${p ? (l.bmi > p.bmi ? `<span class="up">↑ +${(l.bmi-p.bmi).toFixed(2)}</span>` : `<span class="down">↓ ${(l.bmi-p.bmi).toFixed(2)}</span>`) : ''}</td>
-        <td><button class="delete-btn" onclick="deleteLog(${i})" title="Delete entry">🗑</button></td>
-      </tr>`
-    })
-    h += '</table></div>'
-    wHist.innerHTML = h
+      <div class="content">
+        <form id="profile-form">
 
-    new Chart(document.getElementById('bmi-chart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: logs.map(l => l.d),
-        datasets: [{label:'BMI', data: logs.map(l => l.bmi), borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,0.2)'}]
-      },
-      options: {scales: {y: {beginAtZero: false}}, responsive: true, maintainAspectRatio: false}
-    })
-  }
+          <label>
+            Sex
+            <select id="sex">
+              <option>male</option>
+              <option>female</option>
+              <option>other</option>
+            </select>
+          </label>
 
-  function calcTarget() {
-    const n = profile.currentWeight - profile.targetWeight
-    if (n <= 0) return mTarget.innerHTML = '<p>No loss needed.</p>'
-    const m = (0.75*4).toFixed(1)
-    const s = Math.ceil(n/5)
-    let h = `<p>Monthly: ${m} kg</p><ul>`
-    for (let i = 1; i <= s; i++) h += `<li>Stage ${i}: ${(profile.currentWeight - i*5).toFixed(1)} kg</li>`
-    h += '</ul>'
-    mTarget.innerHTML = h
-  }
+          <label>
+            Age
+            <input type="number" id="age" min="18" required>
+          </label>
 
-  function genRoutine() {
-    const {sex, age, height, fitnessLevel: l} = profile
-    const hm = height/100, k = sex==='male'?0.415:sex==='female'?0.413:0.414, sl = hm*k
-    const targetMiles = age<60 ? (sex==='male'?5.6:sex==='female'?5:5.3) : (sex==='male'?4.3:sex==='female'?3.7:4)
-    const sp = l==='low'?0.4:l==='medium'?0.6:0.8, inc = l==='low'?0.1:l==='medium'?0.05:0.025
-    baseMph = l==='low'?1.9:l==='medium'?2.5:3.1
-    maxMph = baseMph + (l==='low'?1.2:l==='medium'?1.9:2.5)
-    let h = `<p>Target distance: ${targetMiles.toFixed(1)} miles/day</p><p>Stride: ${(sl*100).toFixed(1)} cm</p><table><tr><th>Weeks</th><th>Miles</th><th>Time (min)</th></tr>`
-    let cp = sp
-    for (let i = 1; i <= 12; i += 2) {
-      const miles = (targetMiles*cp).toFixed(1)
-      const t = Math.round((miles / baseMph) * 60)
-      h += `<tr><td>${i}-${Math.min(i+1,12)}</td><td>${miles}</td><td>${t}</td></tr>`
-      cp = Math.min(1, cp + inc*2)
-    }
-    h += '</table><p>Speeds: ${baseMph.toFixed(1)}–${maxMph.toFixed(1)} mph</p>'
-    rOut.innerHTML = h
-  }
+          <label>
+            Height (cm)
+            <input type="number" id="height" min="100" required>
+          </label>
 
-  startBtn.onclick = () => {
-    if (aCtx) aCtx.resume()
-    hud.style.display = 'block'
-    startBtn.style.display = 'none'
-    sTime = phTime = 0
-    phase = 'warmup'
-    isPaused = false
-    pauseBtn.textContent = 'Pause'
-    updateH()
-    tInterval = setInterval(() => {
-      if (!isPaused) {
-        sTime++
-        phTime++
-        updateH()
-      }
-    }, 1000)
-  }
+          <label>
+            Weight (kg)
+            <input type="number" id="current-weight" min="30" required>
+          </label>
 
-  pauseBtn.onclick = () => {
-    if (isPaused) {
-      tInterval = setInterval(() => { sTime++; phTime++; updateH() }, 1000)
-      pauseBtn.textContent = 'Pause'
-      isPaused = false
-    } else {
-      clearInterval(tInterval)
-      pauseBtn.textContent = 'Resume'
-      isPaused = true
-    }
-  }
+          <label>
+            Target (kg)
+            <input type="number" id="target-weight" min="30" required>
+          </label>
 
-  stopBtn.onclick = () => {
-    clearInterval(tInterval)
-    hud.style.display = 'none'
-    startBtn.style.display = 'block'
-    beep(440,300,0.4,'sine')
-    alert('Done!')
-  }
+          <label>
+            Level
+            <select id="fitness-level">
+              <option>low</option>
+              <option>medium</option>
+              <option>high</option>
+            </select>
+          </label>
 
-  function updateH() {
-    const m = Math.floor(sTime/60).toString().padStart(2,'0')
-    const s = (sTime%60).toString().padStart(2,'0')
-    timerEl.textContent = `${m}:${s}`
-    let spd, cue = false, f = 800
-    if (phase === 'warmup') {
-      phaseEl.textContent = 'Warm-up'
-      spd = baseMph + (phTime/300)*(maxMph-baseMph)
-      if (phTime >= 300) { phase = 'main'; phTime = 0; cue = true; f = 1000 }
-      else if (Math.floor(phTime/60) !== Math.floor((phTime-1)/60)) { cue = true; f = 700 }
-    } else if (phase === 'main') {
-      phaseEl.textContent = 'Main'
-      const iv = Math.floor(phTime/60) % 2
-      spd = iv === 0 ? maxMph : baseMph + 0.6
-      if (Math.floor(phTime/60) !== Math.floor((phTime-1)/60)) { cue = true; f = iv === 0 ? 950 : 650 }
-      if (sTime >= 1200) { phase = 'cooldown'; phTime = 0; cue = true; f = 400 }
-    } else if (phase === 'cooldown') {
-      phaseEl.textContent = 'Cool-down'
-      spd = maxMph - (phTime/300)*(maxMph-baseMph)
-      if (phTime >= 300) return stopBtn.click()
-    }
-    speedEl.textContent = `Speed: ${spd.toFixed(1)} mph`
-    if (cue) {
-      beep(f,180,0.35,'sine')
-      speedEl.classList.add('flash')
-      setTimeout(() => speedEl.classList.remove('flash'), 400)
-    }
-  }
+          <button type="submit">Save Profile</button>
+        </form>
 
-  // Initial calls
-  if (Object.keys(profile).length) {
-    calcTarget(); genRoutine(); showLogs()
-  }
-})
+        <div id="monthly-target"></div>
+      </div>
+    </section>
+
+    <!-- WEIGHT LOG SECTION -->
+    <section>
+      <h2 class="collapsible">
+        Weight Log <span class="toggle-icon">▼</span>
+      </h2>
+
+      <div class="content">
+        <form id="weight-log-form">
+          <label>
+            Weight (kg)
+            <input type="number" id="log-weight" min="30" required>
+          </label>
+          <button type="submit">Log</button>
+        </form>
+
+        <div id="weight-history" class="table-container"></div>
+
+        <div class="chart-wrapper">
+          <canvas id="bmi-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROUTINE SECTION -->
+    <section>
+      <h2>Routine</h2>
+
+      <div id="routine-output"></div>
+
+      <button id="start-workout">Start Workout</button>
+
+      <!-- WORKOUT HUD -->
+      <div id="workout-hud" style="display: none;">
+
+        <h3>Session</h3>
+
+        <div id="timer-display">00:00</div>
+        <div id="speed-prompt">Ready...</div>
+        <div id="phase">Warm-up</div>
+
+        <div class="hud-controls">
+          <button id="pause-workout">Pause</button>
+          <button id="stop-workout">Stop & Complete</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- MAIN JS -->
+  <scriptjs</script>
+
+  <!-- Basic collapsible fallback -->
+  <script>
+    document.querySelectorAll(".collapsible").forEach(header => {
+      header.addEventListener("click", () => {
+        header.classList.toggle("active");
+        const section = header.nextElementSibling;
+        if (section) section.classList.toggle("show");
+      });
+    });
+  </script>
+</body>
+</html>
