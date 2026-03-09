@@ -48,17 +48,19 @@
     </section>
 
     <section>
-      <h2>Workout Calendar & Progress</h2>
-      
-      <div style="margin-bottom:20px;text-align:center">
-        <label>Start Date: 
-          <input type="date" id="start-date" required>
-          <button id="set-start-date">Set / Reset</button>
-        </label>
+      <h2>Routine</h2>
+      <div id="routine-output"></div>
+      <button id="start-workout">Start Workout</button>
+      <div id="workout-hud" style="display:none">
+        <h3>Session</h3>
+        <div id="timer-display">00:00</div>
+        <div id="speed-prompt">Ready...</div>
+        <div id="phase">Warm-up</div>
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
+          <button id="pause-workout">Pause</button>
+          <button id="stop-workout">Stop & Complete</button>
+        </div>
       </div>
-      
-      <div id="calendar-container"></div>
-      <p id="progress-info" style="text-align:center;font-size:1.1rem;color:#94a3b8;margin-top:16px;">No start date set yet.</p>
     </section>
   </div>
 
